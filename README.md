@@ -1,178 +1,50 @@
-\# ClinicQ
+## Staff Authentication (JWT)
 
+ClinicQ uses JSON Web Tokens (JWT) to authenticate staff members.
 
+### Login Endpoint
 
-Live token and queue system for small clinics.
+**POST** `/api/auth/login`
 
-
-
-Patients can see their position in the queue and their estimated waiting time on their own phone.
-
-
-
-\## Status
-
-
-
-Phase 2: Backend foundation and Doctor API completed.
-
-
-
-\## Run Locally
-
-
-
-\### Prerequisites
-
-
-
-\- Java 17
-
-\- Docker Desktop
-
-\- IntelliJ IDEA
-
-\- Postman (for API testing)
-
-
-
-\### 1. Start PostgreSQL and Redis
-
-
-
-From the project root, run:
-
-
-
-```bash
-
-docker compose up -d
-
-```
-
-
-
-\### 2. Run the backend
-
-
-
-Open the `backend` folder in IntelliJ and run `BackendApplication.java`.
-
-
-
-\### 3. Check backend health
-
-
-
-Open:
-
-
-
-http://localhost:8080/actuator/health
-
-
-
-Expected response:
-
-
+Request body:
 
 ```json
-
-{"status":"UP"}
-
-```
-
-
-
-\## Doctor API
-
-
-
-Base URL: `http://localhost:8080/api/doctors`
-
-
-
-| Method | Endpoint | Description |
-
-|---|---|---|
-
-| POST | `/api/doctors` | Register a doctor |
-
-| GET | `/api/doctors` | Retrieve all doctors |
-
-
-
-\### Register a doctor
-
-
-
-Send a POST request to `http://localhost:8080/api/doctors` with this JSON body:
-
-
-
-```json
-
 {
-
-&#x20; "name": "Dr. Ramesh",
-
-&#x20; "specialization": "General Physician"
-
+  "username": "reception",
+  "password": "reception123"
 }
-
 ```
 
+A successful login returns a JWT token, username, and role.
 
+### Get Current Staff User
 
-A successful request returns `201 Created`.
+**GET** `/api/auth/me`
 
+Requires a valid JWT in the `Authorization` header:
 
+```text
+Authorization: Bearer <your-jwt-token>
+```
 
-A request with an empty doctor name is rejected with `400 Bad Request`.
+A successful request returns the authenticated username and authorities.
 
+### Development Accounts
 
+The application seeds the following development accounts when the staff user table is empty:
 
-\## Tech Stack
+| Username | Password | Role |
+|---|---|---|
+| `reception` | `reception123` | RECEPTIONIST |
+| `doctor` | `doctor123` | DOCTOR |
 
+**Security note:** These are development-only credentials. Change or remove them before deploying to production.
 
+### Authentication Testing
 
-\- Java 17
+The following behaviors have been tested using Postman:
 
-\- Spring Boot
-
-\- Spring Security
-
-\- Spring Data JPA
-
-\- PostgreSQL
-
-\- Redis
-
-\- Maven
-
-\- Docker
-
-\- Postman
-
-
-
-\## Future Plans
-
-
-
-\- Patient token generation
-
-\- Live queue position and estimated waiting time
-
-\- WebSocket-based real-time updates
-
-\- Frontend application
-
-
-
-\## License
-
-
-
-This project is currently a work in progress.
-
+- Valid login returns `200 OK` and a JWT.
+- Accessing `/api/auth/me` with a valid token returns `200 OK`.
+- Accessing `/api/auth/me` without a token returns `401 Unauthorized`.
+- Login with an incorrect password returns `401 Unauthorized`.

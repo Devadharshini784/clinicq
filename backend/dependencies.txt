@@ -1,0 +1,20 @@
+com.clinicq:backend:jar:0.0.1-SNAPSHOT
++- org.springframework.boot:spring-boot-starter-web:jar:3.5.16:compile
+|  +- org.springframework.boot:spring-boot-starter:jar:3.5.16:compile
+|  |  +- org.springframework.boot:spring-boot:jar:3.5.16:compile
+|  |  +- org.springframework.boot:spring-boot-autoconfigure:jar:3.5.16:compile
+|  |  \- org.springframework.boot:spring-boot-starter-logging:jar:3.5.16:compile
+|  +- org.springframework.boot:spring-boot-starter-json:jar:3.5.16:compile
+|  \- org.springframework.boot:spring-boot-starter-tomcat:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-security:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-data-jpa:jar:3.5.16:compile
+|  \- org.springframework.boot:spring-boot-starter-jdbc:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-data-redis:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-websocket:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-validation:jar:3.5.16:compile
++- org.springframework.boot:spring-boot-starter-actuator:jar:3.5.16:compile
+|  \- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:3.5.16:compile
+|     \- org.springframework.boot:spring-boot-actuator:jar:3.5.16:compile
+\- org.springframework.boot:spring-boot-starter-test:jar:3.5.16:test
+   +- org.springframework.boot:spring-boot-test:jar:3.5.16:test
+   \- org.springframework.boot:spring-boot-test-autoconfigure:jar:3.5.16:test

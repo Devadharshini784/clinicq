@@ -3,7 +3,7 @@ spring:
     name: clinicq-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/clinicq?options=-c%20TimeZone%3DAsia%2FKolkata
+    url: jdbc:postgresql://localhost:5432/clinicq
     username: clinicq
     password: clinicq_dev_password
 

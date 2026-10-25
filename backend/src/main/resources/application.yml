@@ -22,3 +22,8 @@ management:
     web:
       exposure:
         include: health,info
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-this-must-be-32-chars-or-more}
+    expiration-ms: 28800000

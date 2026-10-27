@@ -38,7 +38,12 @@ public class QueueControlService {
         Doctor doctor = lockDoctor(doctorId);
         LocalDate today = LocalDate.now(clock);
 
-        finishCurrent(doctorId, today, VisitStatus.DONE);
+        QueueSnapshot snapshot = queueService.snapshot(doctorId, today);
+
+        if (snapshot.currentToken() != null) {
+            finishCurrent(doctorId, today, VisitStatus.DONE);
+        }
+
         callNext(doctor, today);
     }
 

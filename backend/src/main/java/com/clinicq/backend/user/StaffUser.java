@@ -1,5 +1,7 @@
 package com.clinicq.backend.user;
 
+import jakarta.persistence.ManyToOne;
+import com.clinicq.backend.doctor.Doctor;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +30,9 @@ public class StaffUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @ManyToOne
+    private Doctor doctor;
 
     public StaffUser(String username, String passwordHash, String fullName, Role role) {
         this.username = username;

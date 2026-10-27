@@ -18,9 +18,10 @@ public class AuthController {
     private final StaffUserRepository userRepository;
     private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager,
-                          StaffUserRepository userRepository,
-                          JwtService jwtService) {
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            StaffUserRepository userRepository,
+            JwtService jwtService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
@@ -38,8 +39,16 @@ public class AuthController {
         String token = jwtService.generateToken(
                 user.getUsername(), user.getRole());
 
+        Long doctorId = user.getDoctor() == null
+                ? null
+                : user.getDoctor().getId();
+
         return new LoginResponse(
-                token, user.getUsername(), user.getRole().name());
+                token,
+                user.getUsername(),
+                user.getRole().name(),
+                doctorId
+        );
     }
 
     @GetMapping("/me")

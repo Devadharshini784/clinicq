@@ -22,6 +22,9 @@ public interface VisitRepository extends JpaRepository<Visit, Long> {
     List<Visit> findTop10ByDoctorIdAndStatusOrderByFinishedAtDesc(
             Long doctorId, VisitStatus status);
 
+    Optional<Visit> findByDoctorIdAndVisitDateAndTokenNumber(
+            Long doctorId, LocalDate visitDate, int tokenNumber);
+
     @Query("select coalesce(max(v.tokenNumber), 0) from Visit v " +
             "where v.doctor.id = :doctorId and v.visitDate = :date")
     int findMaxToken(

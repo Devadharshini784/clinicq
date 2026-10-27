@@ -4,5 +4,10 @@ public record PublicVisitResponse(
         int tokenNumber,
         String doctorName,
         VisitStatus status,
-        long patientsAhead
-) {}
+        Integer position,
+        int patientsAhead,
+        int estimatedWaitMinutes,
+        Integer nowServingToken,
+        boolean comeNow
+) {
+}

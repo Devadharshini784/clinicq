@@ -129,12 +129,22 @@ public class QueueService {
 
     private void ensureInitialized(Long doctorId, LocalDate date) {
         String marker = initializedKey(doctorId, date);
+        String queue = queueKey(doctorId, date);
+        String current = currentKey(doctorId, date);
 
-        if (Boolean.TRUE.equals(redis.hasKey(marker))) {
+        boolean initialized = Boolean.TRUE.equals(redis.hasKey(marker));
+        boolean queueExists = Boolean.TRUE.equals(redis.hasKey(queue));
+        boolean currentExists = Boolean.TRUE.equals(redis.hasKey(current));
+
+        if (!initialized) {
+            rebuildFromDatabase(doctorId, date);
             return;
         }
 
-        rebuildFromDatabase(doctorId, date);
+        // Redis may have lost its queue data while retaining the marker.
+        if (!queueExists && !currentExists) {
+            rebuildFromDatabase(doctorId, date);
+        }
     }
 
     public void rebuildFromDatabase(Long doctorId, LocalDate date) {

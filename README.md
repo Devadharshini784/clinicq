@@ -1,50 +1,50 @@
-## Staff Authentication (JWT)
+## Visits and Tokens
 
-ClinicQ uses JSON Web Tokens (JWT) to authenticate staff members.
+ClinicQ supports patient registration, daily token generation, receptionist queue viewing, and public token tracking.
 
-### Login Endpoint
+### Authentication
 
-**POST** `/api/auth/login`
+- Patient registration and today's queue require a valid JWT.
+- Public token tracking does not require authentication.
 
-Request body:
+### API Endpoints
+
+| Method | Endpoint | Description | Authentication |
+|---|---|---|---|
+| POST | `/api/visits` | Register a patient and generate a queue token | Required |
+| GET | `/api/visits/today?doctorId=1` | View today's queue for a doctor | Required |
+| GET | `/api/public/visits/{publicId}` | View token status and patients ahead | Not required |
+
+### Register a Patient
+
+Send a `POST` request to `/api/visits` with a valid JWT.
+
+Example request body:
 
 ```json
 {
-  "username": "reception",
-  "password": "reception123"
+  "name": "Arun Kumar",
+  "phone": "9876543210",
+  "doctorId": 1
 }
 ```
 
-A successful login returns a JWT token, username, and role.
+A successful registration returns the token number, patient name, doctor name, visit date, status, and public tracking ID.
 
-### Get Current Staff User
+### Public Token Tracking
 
-**GET** `/api/auth/me`
+Use the returned `publicId` to check a patient's token:
 
-Requires a valid JWT in the `Authorization` header:
-
-```text
-Authorization: Bearer <your-jwt-token>
+```http
+GET /api/public/visits/{publicId}
 ```
 
-A successful request returns the authenticated username and authorities.
+The response includes the token number, doctor name, current status, and number of patients ahead.
 
-### Development Accounts
+### Queue Rules
 
-The application seeds the following development accounts when the staff user table is empty:
-
-| Username | Password | Role |
-|---|---|---|
-| `reception` | `reception123` | RECEPTIONIST |
-| `doctor` | `doctor123` | DOCTOR |
-
-**Security note:** These are development-only credentials. Change or remove them before deploying to production.
-
-### Authentication Testing
-
-The following behaviors have been tested using Postman:
-
-- Valid login returns `200 OK` and a JWT.
-- Accessing `/api/auth/me` with a valid token returns `200 OK`.
-- Accessing `/api/auth/me` without a token returns `401 Unauthorized`.
-- Login with an incorrect password returns `401 Unauthorized`.
+- Each doctor has an independent token sequence.
+- Token numbering starts at 1 for each doctor each day.
+- The application uses the `Asia/Kolkata` timezone to determine the visit date.
+- A unique public ID is generated for each visit.
+- Database constraints and doctor-row locking help protect token numbering during concurrent registrations.

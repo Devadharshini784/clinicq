@@ -1,5 +1,6 @@
 package com.clinicq.backend.config;
 
+import org.springframework.http.HttpMethod;
 import com.clinicq.backend.auth.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/actuator/health", "/error").permitAll()
                         .requestMatchers("/api/public/**", "/ws/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("ADMIN")
+                        .requestMatchers("/api/visits/**").hasAnyRole("RECEPTIONIST", "ADMIN")
+                        .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -27,3 +27,5 @@ app:
   jwt:
     secret: ${JWT_SECRET:dev-only-secret-change-me-this-must-be-32-chars-or-more}
     expiration-ms: 28800000
+  queue:
+    default-consultation-seconds: 300

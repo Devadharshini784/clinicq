@@ -1,50 +1,38 @@
-## Visits and Tokens
+## Queue Control (Doctor)
 
-ClinicQ supports patient registration, daily token generation, receptionist queue viewing, and public token tracking.
+The doctor can manage the patient queue through these endpoints:
 
-### Authentication
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/doctor/queue` | View the current queue and today's visits |
+| POST | `/api/doctor/queue/next` | Finish the current patient and call the next |
+| POST | `/api/doctor/queue/skip` | Mark the current patient as skipped and call the next |
+| POST | `/api/doctor/queue/done` | Finish the current consultation |
 
-- Patient registration and today's queue require a valid JWT.
-- Public token tracking does not require authentication.
+### Queue and Waiting-Time Estimates
 
-### API Endpoints
+- Patients receive a token number for their selected doctor and visit date.
+- The queue is maintained in Redis for fast access.
+- PostgreSQL remains the source of truth for patient visits.
+- If Redis queue data is lost, the queue can be rebuilt from PostgreSQL.
+- Estimated waiting time is calculated using the number of patients ahead and the doctor's average consultation duration.
+- The default consultation duration is 5 minutes.
+- The average is based on the doctor's last 10 completed consultations, when sufficient duration data is available.
 
-| Method | Endpoint | Description | Authentication |
-|---|---|---|---|
-| POST | `/api/visits` | Register a patient and generate a queue token | Required |
-| GET | `/api/visits/today?doctorId=1` | View today's queue for a doctor | Required |
-| GET | `/api/public/visits/{publicId}` | View token status and patients ahead | Not required |
+### Roles and Permissions
 
-### Register a Patient
+- **ADMIN:** Manage doctors and perform administrative operations.
+- **RECEPTIONIST:** Register patients and view today's visits.
+- **DOCTOR:** View and control the doctor's own queue.
 
-Send a `POST` request to `/api/visits` with a valid JWT.
+### Local Development Accounts
 
-Example request body:
+These development accounts are seeded automatically:
 
-```json
-{
-  "name": "Arun Kumar",
-  "phone": "9876543210",
-  "doctorId": 1
-}
-```
+| Username | Password | Role |
+|---|---|---|
+| `admin` | `admin123` | ADMIN |
+| `reception` | `reception123` | RECEPTIONIST |
+| `doctor` | `doctor123` | DOCTOR |
 
-A successful registration returns the token number, patient name, doctor name, visit date, status, and public tracking ID.
-
-### Public Token Tracking
-
-Use the returned `publicId` to check a patient's token:
-
-```http
-GET /api/public/visits/{publicId}
-```
-
-The response includes the token number, doctor name, current status, and number of patients ahead.
-
-### Queue Rules
-
-- Each doctor has an independent token sequence.
-- Token numbering starts at 1 for each doctor each day.
-- The application uses the `Asia/Kolkata` timezone to determine the visit date.
-- A unique public ID is generated for each visit.
-- Database constraints and doctor-row locking help protect token numbering during concurrent registrations.
+**Security note:** These credentials are for local development only. Change them before deploying the application.

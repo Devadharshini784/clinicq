@@ -34,7 +34,7 @@ public class SecurityConfig {
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/actuator/health", "/error").permitAll()
-                        .requestMatchers("/api/public/**", "/ws/**").permitAll()
+                        .requestMatchers("/api/public/**", "/ws", "/ws/**", "/ws-test.html").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("ADMIN")
                         .requestMatchers("/api/visits/**").hasAnyRole("RECEPTIONIST", "ADMIN")
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")

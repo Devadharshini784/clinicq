@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { api } from '../api';
 import StaffHeader from '../components/StaffHeader';
+import TodayList from '../components/TodayList';
 
 export default function ReceptionPage() {
   const [doctors, setDoctors] = useState([]);
@@ -14,6 +15,7 @@ export default function ReceptionPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(null);
 
+  // Load available doctors when the page opens.
   useEffect(() => {
     async function loadDoctors() {
       try {
@@ -35,8 +37,10 @@ export default function ReceptionPage() {
     loadDoctors();
   }, []);
 
+  // Register a new patient.
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError('');
     setSuccess(null);
     setBusy(true);
@@ -61,6 +65,7 @@ export default function ReceptionPage() {
     }
   }
 
+  // Create the public queue-tracking URL.
   const trackingUrl = success?.publicId
     ? `${window.location.origin}/q/${success.publicId}`
     : '';
@@ -70,15 +75,18 @@ export default function ReceptionPage() {
       <StaffHeader />
 
       <main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        {/* Page heading */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             Reception Dashboard
           </h1>
+
           <p className="mt-2 text-slate-600">
             Register patients and give them a link to follow their queue.
           </p>
         </div>
 
+        {/* Error message */}
         {error && (
           <div
             role="alert"
@@ -88,10 +96,12 @@ export default function ReceptionPage() {
           </div>
         )}
 
+        {/* Patient registration form */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <h2 className="text-xl font-semibold">Register a patient</h2>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+            {/* Patient name */}
             <div>
               <label
                 htmlFor="patientName"
@@ -111,6 +121,7 @@ export default function ReceptionPage() {
               />
             </div>
 
+            {/* Phone number */}
             <div>
               <label
                 htmlFor="patientPhone"
@@ -131,6 +142,7 @@ export default function ReceptionPage() {
               />
             </div>
 
+            {/* Doctor selection */}
             <div>
               <label
                 htmlFor="doctor"
@@ -168,6 +180,7 @@ export default function ReceptionPage() {
               )}
             </div>
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={busy || loadingDoctors || !doctorId}
@@ -178,38 +191,59 @@ export default function ReceptionPage() {
           </form>
         </section>
 
+        {/* Registration success and QR code */}
         {success && (
           <section className="rounded-2xl border border-green-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="rounded-lg bg-green-50 p-4 text-green-800">
-              <h2 className="font-semibold">Patient registered successfully!</h2>
+              <h2 className="font-semibold">
+                Patient registered successfully!
+              </h2>
+
               <p className="mt-1 text-sm">
                 Give the patient this QR code to track their queue.
               </p>
             </div>
 
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              {/* Registration details */}
               <div className="space-y-3">
                 <p className="text-sm text-slate-500">Patient</p>
+
                 <p className="text-lg font-semibold">
-                  {success.patientName ?? success.name ?? name ?? 'Registered patient'}
+                  {success.patientName ?? success.name ?? 'Registered patient'}
                 </p>
 
                 <p className="text-sm text-slate-500">Doctor</p>
+
                 <p className="font-medium">
-                  {success.doctorName ?? 'Assigned doctor'}
+                  {success.doctorName ??
+                    doctors.find((doctor) => String(doctor.id) === doctorId)
+                      ?.name ??
+                    'Assigned doctor'}
                 </p>
 
                 <p className="text-sm text-slate-500">Token number</p>
+
                 <p className="text-4xl font-bold text-teal-700">
                   {success.tokenNumber ?? '—'}
                 </p>
 
                 <p className="text-sm text-slate-500">Status</p>
-                <p className="font-medium">{success.status ?? 'WAITING'}</p>
+
+                <p className="font-medium">
+                  {success.status ?? 'WAITING'}
+                </p>
               </div>
 
+              {/* QR code and tracking link */}
               <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 p-5">
-                <QRCodeSVG value={trackingUrl} size={190} level="M" />
+                {trackingUrl && (
+                  <QRCodeSVG
+                    value={trackingUrl}
+                    size={190}
+                    level="M"
+                  />
+                )}
 
                 <p className="mt-4 text-center text-sm font-medium">
                   Scan to track your queue
@@ -226,7 +260,15 @@ export default function ReceptionPage() {
 
                 <button
                   type="button"
-                  onClick={() => navigator.clipboard.writeText(trackingUrl)}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(trackingUrl);
+                    } catch {
+                      setError(
+                        'Unable to copy the link. Please copy it manually.'
+                      );
+                    }
+                  }}
                   className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-white"
                 >
                   Copy tracking link
@@ -235,12 +277,15 @@ export default function ReceptionPage() {
             </div>
 
             <p className="mt-5 text-sm text-slate-500">
-              The tracking link uses this browser's current origin. For a
-              patient using another phone, the frontend must be accessible
-              from that phone on the network or through a deployed URL.
+              The tracking link uses this browser's current address. If the
+              patient is using another phone, the frontend must be accessible
+              from that phone through your local network or a deployed URL.
             </p>
           </section>
         )}
+
+        {/* Today's live queue */}
+        <TodayList doctors={doctors} />
       </main>
     </div>
   );

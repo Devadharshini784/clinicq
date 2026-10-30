@@ -3,6 +3,7 @@ import { AuthProvider } from './auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import StaffHeader from './components/StaffHeader';
 import LoginPage from './pages/LoginPage';
+import PatientPage from './pages/PatientPage';
 
 function HomePage() {
   return (
@@ -50,7 +51,7 @@ export default function App() {
           <Route path="/doctor" element={<StaffLayout />} />
         </Route>
 
-        <Route path="/q/:publicId" element={<p className="p-6">Patient tracking page coming soon.</p>} />
+        <Route path="/q/:publicId" element={<PatientPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

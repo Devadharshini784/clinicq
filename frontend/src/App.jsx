@@ -5,6 +5,7 @@ import StaffHeader from './components/StaffHeader';
 import LoginPage from './pages/LoginPage';
 import PatientPage from './pages/PatientPage';
 import ReceptionPage from './pages/ReceptionPage';
+import DoctorPage from './pages/DoctorPage';
 
 function HomePage() {
   return (
@@ -49,7 +50,7 @@ export default function App() {
         </Route>
 
         <Route element={<ProtectedRoute roles={['DOCTOR']} />}>
-          <Route path="/doctor" element={<StaffLayout />} />
+          <Route path="/doctor" element={<DoctorPage />} />
         </Route>
 
         <Route path="/q/:publicId" element={<PatientPage />} />

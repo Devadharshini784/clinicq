@@ -30,7 +30,6 @@ public class QueueControlService {
             QueueService queueService,
             Clock clock,
             QueueBroadcaster broadcaster) {
-
         this.doctorRepository = doctorRepository;
         this.visitRepository = visitRepository;
         this.queueService = queueService;
@@ -50,7 +49,6 @@ public class QueueControlService {
         }
 
         callNext(doctor, today);
-
         AfterCommit.run(() -> broadcaster.broadcast(doctorId));
     }
 
@@ -100,10 +98,11 @@ public class QueueControlService {
         Visit currentVisit = visitRepository
                 .findByDoctorIdAndVisitDateAndTokenNumber(
                         doctorId, today, currentToken)
-                .orElseThrow(() ->
-                        new NotFoundException("Current visit not found"));
+                .orElseThrow(
+                        () -> new NotFoundException("Current visit not found"));
 
         Instant finishedAt = Instant.now(clock);
+
         currentVisit.setStatus(finalStatus);
         currentVisit.setFinishedAt(finishedAt);
         visitRepository.save(currentVisit);
@@ -135,6 +134,7 @@ public class QueueControlService {
         }
 
         Instant startedAt = Instant.now(clock);
+
         nextVisit.setStatus(VisitStatus.IN_PROGRESS);
         nextVisit.setStartedAt(startedAt);
         visitRepository.save(nextVisit);

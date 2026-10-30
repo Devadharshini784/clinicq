@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import StaffHeader from './components/StaffHeader';
 import LoginPage from './pages/LoginPage';
 import PatientPage from './pages/PatientPage';
+import ReceptionPage from './pages/ReceptionPage';
 
 function HomePage() {
   return (
@@ -44,7 +45,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<ProtectedRoute roles={['RECEPTIONIST', 'ADMIN']} />}>
-          <Route path="/reception" element={<StaffLayout />} />
+          <Route path="/reception" element={<ReceptionPage />} />
         </Route>
 
         <Route element={<ProtectedRoute roles={['DOCTOR']} />}>

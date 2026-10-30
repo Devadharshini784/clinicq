@@ -1,5 +1,6 @@
 package com.clinicq.backend.queue;
 
+import com.clinicq.backend.config.AfterCommit;
 import com.clinicq.backend.config.ConflictException;
 import com.clinicq.backend.config.NotFoundException;
 import com.clinicq.backend.doctor.Doctor;
@@ -21,16 +22,20 @@ public class QueueControlService {
     private final VisitRepository visitRepository;
     private final QueueService queueService;
     private final Clock clock;
+    private final QueueBroadcaster broadcaster;
 
     public QueueControlService(
             DoctorRepository doctorRepository,
             VisitRepository visitRepository,
             QueueService queueService,
-            Clock clock) {
+            Clock clock,
+            QueueBroadcaster broadcaster) {
+
         this.doctorRepository = doctorRepository;
         this.visitRepository = visitRepository;
         this.queueService = queueService;
         this.clock = clock;
+        this.broadcaster = broadcaster;
     }
 
     @Transactional
@@ -45,6 +50,8 @@ public class QueueControlService {
         }
 
         callNext(doctor, today);
+
+        AfterCommit.run(() -> broadcaster.broadcast(doctorId));
     }
 
     @Transactional
@@ -54,6 +61,8 @@ public class QueueControlService {
 
         finishCurrent(doctorId, today, VisitStatus.SKIPPED);
         callNext(doctor, today);
+
+        AfterCommit.run(() -> broadcaster.broadcast(doctorId));
     }
 
     @Transactional
@@ -62,6 +71,8 @@ public class QueueControlService {
         LocalDate today = LocalDate.now(clock);
 
         finishCurrent(doctorId, today, VisitStatus.DONE);
+
+        AfterCommit.run(() -> broadcaster.broadcast(doctorId));
     }
 
     private Doctor lockDoctor(Long doctorId) {
@@ -80,27 +91,34 @@ public class QueueControlService {
 
         if (currentToken == null) {
             if (finalStatus == VisitStatus.DONE) {
-                throw new ConflictException("No patient is currently being served");
+                throw new ConflictException(
+                        "No patient is currently being served");
             }
             return;
         }
 
         Visit currentVisit = visitRepository
-                .findByDoctorIdAndVisitDateAndTokenNumber(doctorId, today, currentToken)
-                .orElseThrow(() -> new NotFoundException("Current visit not found"));
+                .findByDoctorIdAndVisitDateAndTokenNumber(
+                        doctorId, today, currentToken)
+                .orElseThrow(() ->
+                        new NotFoundException("Current visit not found"));
 
         Instant finishedAt = Instant.now(clock);
         currentVisit.setStatus(finalStatus);
         currentVisit.setFinishedAt(finishedAt);
         visitRepository.save(currentVisit);
 
-        if (finalStatus == VisitStatus.DONE && currentVisit.getStartedAt() != null) {
+        if (finalStatus == VisitStatus.DONE
+                && currentVisit.getStartedAt() != null) {
+
             Instant startedAt = currentVisit.getStartedAt();
-            com.clinicq.backend.config.AfterCommit.run(
-                    () -> queueService.recordDuration(doctorId, startedAt, finishedAt));
+
+            AfterCommit.run(
+                    () -> queueService.recordDuration(
+                            doctorId, startedAt, finishedAt));
         }
 
-        com.clinicq.backend.config.AfterCommit.run(
+        AfterCommit.run(
                 () -> queueService.clearCurrent(doctorId, today));
     }
 
@@ -123,7 +141,7 @@ public class QueueControlService {
 
         int token = nextVisit.getTokenNumber();
 
-        com.clinicq.backend.config.AfterCommit.run(
+        AfterCommit.run(
                 () -> queueService.setCurrent(doctorId, today, token));
     }
 }

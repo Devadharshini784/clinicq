@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ClinicQ WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body style="font-family: sans-serif; max-width: 700px; margin: 2rem auto;">
+
+<h2>ClinicQ Live Queue Test</h2>
+
+<label>
+    Doctor ID:
+    <input id="doctorId" value="1" size="4">
+</label>
+
+<button onclick="connect()">Connect</button>
+<button onclick="disconnect()">Disconnect</button>
+
+<p>Status: <b id="status">Disconnected</b></p>
+<pre id="log"></pre>
+
+<script>
+    let client = null;
+
+    function log(message) {
+        const output = document.getElementById('log');
+        output.textContent =
+            new Date().toLocaleTimeString() + '  ' + message + '\n' +
+            output.textContent;
+    }
+
+    function connect() {
+        if (client) {
+            client.deactivate();
+        }
+
+        const doctorId = document.getElementById('doctorId').value;
+        const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+
+        client = new StompJs.Client({
+            brokerURL: scheme + location.host + '/ws',
+            reconnectDelay: 3000,
+
+            onConnect: () => {
+                document.getElementById('status').textContent = 'Connected';
+
+                client.subscribe('/topic/queue/' + doctorId, (message) => {
+                    const queue = JSON.parse(message.body);
+
+                    log(
+                        'Now serving: ' + queue.currentToken +
+                        ' | Waiting: [' + queue.waitingTokens.join(', ') + ']' +
+                        ' | Average: ' + queue.avgConsultationSeconds + 's'
+                    );
+                });
+            },
+
+            onWebSocketClose: () => {
+                document.getElementById('status').textContent =
+                    'Disconnected (retrying...)';
+            },
+
+            onStompError: (frame) => {
+                log('STOMP error: ' + frame.headers['message']);
+            }
+        });
+
+        client.activate();
+    }
+
+    function disconnect() {
+        if (client) {
+            client.deactivate();
+            client = null;
+        }
+
+        document.getElementById('status').textContent = 'Disconnected';
+    }
+</script>
+
+</body>
+</html>

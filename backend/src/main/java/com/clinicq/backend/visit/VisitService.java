@@ -6,6 +6,7 @@ import com.clinicq.backend.doctor.Doctor;
 import com.clinicq.backend.doctor.DoctorRepository;
 import com.clinicq.backend.patient.Patient;
 import com.clinicq.backend.patient.PatientRepository;
+import com.clinicq.backend.queue.QueueBroadcaster;
 import com.clinicq.backend.queue.QueueService;
 import com.clinicq.backend.queue.QueueSnapshot;
 import org.springframework.stereotype.Service;
@@ -25,17 +26,21 @@ public class VisitService {
     private final PatientRepository patientRepository;
     private final QueueService queueService;
     private final Clock clock;
+    private final QueueBroadcaster queueBroadcaster;
 
     public VisitService(
             VisitRepository visitRepository,
             DoctorRepository doctorRepository,
             PatientRepository patientRepository,
             QueueService queueService,
+            QueueBroadcaster queueBroadcaster,
             Clock clock) {
+
         this.visitRepository = visitRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.queueService = queueService;
+        this.queueBroadcaster = queueBroadcaster;
         this.clock = clock;
     }
 
@@ -57,6 +62,9 @@ public class VisitService {
 
         AfterCommit.run(
                 () -> queueService.addWaiting(doctorId, today, nextToken));
+
+        AfterCommit.run(
+                () -> queueBroadcaster.broadcast(doctorId));
 
         return VisitResponse.from(visit);
     }
@@ -93,14 +101,14 @@ public class VisitService {
 
         return new PublicVisitResponse(
                 token,
+                doctor.getId(),
                 doctor.getName(),
                 visit.getStatus(),
                 waiting ? ahead + 1 : null,
                 ahead,
                 waitMinutes,
                 snapshot.currentToken(),
-                waiting && ahead <= COME_NOW_THRESHOLD
-        );
+                waiting && ahead <= COME_NOW_THRESHOLD);
     }
 
     private Patient findOrCreatePatient(RegisterPatientRequest request) {
